@@ -1,0 +1,112 @@
+{
+  "entities": {
+    "booking": {
+      "title": "Booking",
+      "description": "Agendamento de equipamentos multimídia e espaços do Colégio Estadual José Carneiro de Brito",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador único do agendamento",
+          "maxLength": 128
+        },
+        "teacherName": {
+          "type": "string",
+          "description": "Nome do professor responsável",
+          "maxLength": 100
+        },
+        "subject": {
+          "type": "string",
+          "description": "Disciplina ou componente curricular",
+          "maxLength": 100
+        },
+        "classGroup": {
+          "type": "string",
+          "description": "Turma do Colégio José Carneiro",
+          "maxLength": 20
+        },
+        "date": {
+          "type": "string",
+          "description": "Data do agendamento (YYYY-MM-DD)",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "shift": {
+          "type": "string",
+          "description": "Turno escolar",
+          "enum": ["Matutino", "Vespertino"]
+        },
+        "periods": {
+          "type": "array",
+          "description": "Aulas reservadas",
+          "items": {
+            "type": "string"
+          }
+        },
+        "equipments": {
+          "type": "array",
+          "description": "Lista de equipamentos multimídia solicitados",
+          "items": {
+            "type": "string"
+          }
+        },
+        "location": {
+          "type": "string",
+          "description": "Ambiente selecionado",
+          "enum": ["Biblioteca", "Laboratório", "Sala de Aula", "Auditório/Pátio"]
+        },
+        "locationDetails": {
+          "type": "string",
+          "description": "Detalhes complementares do local",
+          "maxLength": 200
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Objetivo pedagógico do uso",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "description": "Status do agendamento",
+          "enum": ["CONFIRMADO", "EM_USO", "CONCLUIDO", "CANCELADO"]
+        },
+        "completionReason": {
+          "type": "string",
+          "description": "Motivo da finalização ou desmarcação",
+          "enum": ["EXPIRADO_DATA", "MANUAL_DESMARCADO", "CONCLUIDO_USO"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Data e hora de criação no formato ISO"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Data e hora de atualização no formato ISO"
+        },
+        "completedAt": {
+          "type": "string",
+          "description": "Data e hora de conclusão no formato ISO"
+        }
+      },
+      "required": [
+        "id",
+        "teacherName",
+        "subject",
+        "classGroup",
+        "date",
+        "shift",
+        "periods",
+        "equipments",
+        "location",
+        "purpose",
+        "status",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "booking",
+      "description": "Coleção de agendamentos de multimídia da escola"
+    }
+  }
+}

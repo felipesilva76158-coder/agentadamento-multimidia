@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll([
+        'id', 'teacherName', 'subject', 'classGroup', 'date',
+        'shift', 'periods', 'equipments', 'location', 'purpose', 'status', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'teacherName', 'subject', 'classGroup', 'date',
+        'shift', 'periods', 'equipments', 'location', 'locationDetails',
+        'purpose', 'status', 'completionReason', 'createdAt', 'updatedAt', 'completedAt'
+      ]) &&
+      data.id is string && isValidId(data.id) &&
+      data.teacherName is string && data.teacherName.size() > 0 && data.teacherName.size() <= 100 &&
+      data.subject is string && data.subject.size() > 0 && data.subject.size() <= 100 &&
+      data.classGroup is string && data.classGroup.size() > 0 && data.classGroup.size() <= 20 &&
+      data.date is string && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+      data.shift in ['Matutino', 'Vespertino'] &&
+      data.location in ['Biblioteca', 'Laboratório', 'Sala de Aula', 'Auditório/Pátio'] &&
+      data.status in ['CONFIRMADO', 'EM_USO', 'CONCLUIDO', 'CANCELADO'] &&
+      data.purpose is string && data.purpose.size() <= 500 &&
+      data.periods is list && data.periods.size() >= 1 && data.periods.size() <= 20 && data.periods[0] is string &&
+      data.equipments is list && data.equipments.size() >= 1 && data.equipments.size() <= 20 && data.equipments[0] is string &&
+      data.createdAt is string && data.createdAt.size() <= 64 &&
+      (!('locationDetails' in data) || (data.locationDetails is string && data.locationDetails.size() <= 200)) &&
+      (!('completionReason' in data) || data.completionReason in ['EXPIRADO_DATA', 'MANUAL_DESMARCADO', 'CONCLUIDO_USO']) &&
+      (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64)) &&
+      (!('completedAt' in data) || (data.completedAt is string && data.completedAt.size() <= 64));
+    }
+
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if isValidId(bookingId);
+      allow list: if true;
+      allow create: if isValidId(bookingId) &&
+        isValidBooking(incoming()) &&
+        incoming().id == bookingId;
+      allow update: if isValidId(bookingId) &&
+        isValidBooking(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt;
+      allow delete: if isValidId(bookingId);
+    }
+  }
+}
